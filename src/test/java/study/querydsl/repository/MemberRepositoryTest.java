@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberSearchCondition;
 import study.querydsl.dto.MemberTeamDto;
 import study.querydsl.entity.Member;
+import study.querydsl.entity.QMember;
 import study.querydsl.entity.Team;
 
 import javax.persistence.EntityManager;
@@ -17,6 +18,7 @@ import javax.persistence.PersistenceContext;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static study.querydsl.entity.QMember.*;
 
 @SpringBootTest
 @Transactional
@@ -95,5 +97,19 @@ class MemberRepositoryTest {
         assertThat(result.getSize()).isEqualTo(3);
         assertThat(result.getContent()).extracting("username")
                 .containsExactly("member1", "member2", "member3");
+    }
+
+
+    /**
+     * 한계점
+     *  - 조인X (묵시적 조인은 가능하지만 left join 불가능)
+     *  - 클라이언트가 Querydsl에 의존해야 한다. 서비스 클래스가 Querydsl 구현 기술에 의존해야 한다.
+     *  - 복잡한 실무환경에서 사용하기에는 한계가 명확한다.
+     */
+    @Test
+    void querydslPredicateExecutor() {
+        Iterable<Member> result = memberRepository.findAll(
+                member.age.between(20, 40)
+                        .and(member.username.eq("member1")));
     }
 }
